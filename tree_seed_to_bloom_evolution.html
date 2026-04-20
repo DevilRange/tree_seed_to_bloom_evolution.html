@@ -1,9 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tree Growth Animation</title>
 <style>
+:root{
+  --color-text-primary:#2b3542;
+  --color-text-secondary:#5a6472;
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#eef2f5;
+  --border-radius-md:8px;
+  --border-radius-lg:14px;
+}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+  background:#f6f8fa;color:var(--color-text-primary);
+  padding:28px 16px;max-width:760px;margin:0 auto;line-height:1.45;
+}
+button{
+  font-family:inherit;background:var(--color-background-primary);
+  border:1px solid #d7dee5;padding:7px 14px;border-radius:var(--border-radius-md);
+  cursor:pointer;font-size:13px;color:var(--color-text-primary);transition:background .15s;
+}
+button:hover{background:#f0f4f7}
+input[type="range"]{accent-color:#6fba6b}
 .controls-bar{display:flex;align-items:center;gap:12px;padding:12px 0 0;flex-wrap:wrap}
-.stage-badge{font-size:13px;color:var(--color-text-secondary);padding:6px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);min-width:110px;text-align:center;font-weight:500}
+.stage-badge{font-size:13px;color:var(--color-text-secondary);padding:6px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);min-width:110px;text-align:center;font-weight:500;font-variant-numeric:tabular-nums}
 .growth-track{flex:1;min-width:180px}
-.scene-wrap{border-radius:var(--border-radius-lg);overflow:hidden;line-height:0}
+.scene-wrap{border-radius:var(--border-radius-lg);overflow:hidden;line-height:0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
+</head>
+<body>
 
 <h2 class="sr-only">Animation of a tree growing from seed, through germination and sapling stages, to a flowering mature tree</h2>
 
@@ -12,13 +42,64 @@
 <title>Tree growth animation</title>
 <desc>An interactive illustration of a seed sprouting roots and a shoot, growing into a sapling, then a mature flowering tree.</desc>
 
-<rect x="0" y="0" width="680" height="300" fill="#dbeaf3"/>
-<circle cx="570" cy="68" r="40" fill="#f9d976" opacity="0.25"/>
-<circle cx="570" cy="68" r="28" fill="#f9d976"/>
-<path d="M 0 300 Q 130 268 280 290 Q 420 310 560 282 Q 620 273 680 286 L 680 300 Z" fill="#b8d4b0" opacity="0.45"/>
-<path d="M 0 300 Q 200 284 380 294 Q 520 302 680 290 L 680 300 Z" fill="#9ec494" opacity="0.55"/>
-<rect x="0" y="300" width="680" height="160" fill="#d6c49e"/>
-<rect x="0" y="300" width="680" height="4" fill="#a88a5c" opacity="0.6"/>
+<defs>
+  <linearGradient id="sky-grad" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#c8dcec"/>
+    <stop offset=".55" stop-color="#dbeaf3"/>
+    <stop offset="1" stop-color="#e9eff2"/>
+  </linearGradient>
+  <radialGradient id="sun-glow" cx=".5" cy=".5" r=".5">
+    <stop offset="0" stop-color="#fff4c8" stop-opacity=".85"/>
+    <stop offset=".45" stop-color="#f9d976" stop-opacity=".22"/>
+    <stop offset="1" stop-color="#f9d976" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="sun-core" cx=".4" cy=".4" r=".6">
+    <stop offset="0" stop-color="#fff2b2"/>
+    <stop offset="1" stop-color="#f6cd5f"/>
+  </radialGradient>
+  <linearGradient id="hill-back" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#c3dbba" stop-opacity=".55"/>
+    <stop offset="1" stop-color="#a9cfa0" stop-opacity=".55"/>
+  </linearGradient>
+  <linearGradient id="hill-front" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#9ec494" stop-opacity=".78"/>
+    <stop offset="1" stop-color="#7fad76" stop-opacity=".78"/>
+  </linearGradient>
+  <linearGradient id="ground-grad" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#d9c59f"/>
+    <stop offset="1" stop-color="#c6ad82"/>
+  </linearGradient>
+</defs>
+
+<rect x="0" y="0" width="680" height="300" fill="url(#sky-grad)"/>
+<circle cx="570" cy="68" r="62" fill="url(#sun-glow)"/>
+<circle cx="570" cy="68" r="27" fill="url(#sun-core)"/>
+
+<g id="clouds-wrap">
+<g id="clouds">
+  <g transform="translate(140 72)" opacity=".78">
+    <ellipse cx="0" cy="0" rx="38" ry="11" fill="#fff"/>
+    <ellipse cx="-18" cy="-6" rx="22" ry="10" fill="#fff"/>
+    <ellipse cx="16" cy="-5" rx="20" ry="9" fill="#fff"/>
+  </g>
+  <g transform="translate(380 46)" opacity=".6">
+    <ellipse cx="0" cy="0" rx="32" ry="9" fill="#fff"/>
+    <ellipse cx="-14" cy="-5" rx="18" ry="8" fill="#fff"/>
+    <ellipse cx="12" cy="-4" rx="15" ry="7" fill="#fff"/>
+  </g>
+  <g transform="translate(260 118)" opacity=".5">
+    <ellipse cx="0" cy="0" rx="26" ry="8" fill="#fff"/>
+    <ellipse cx="-12" cy="-4" rx="14" ry="7" fill="#fff"/>
+    <ellipse cx="10" cy="-3" rx="12" ry="6" fill="#fff"/>
+  </g>
+</g>
+</g>
+
+<path d="M 0 300 Q 130 268 280 290 Q 420 310 560 282 Q 620 273 680 286 L 680 300 Z" fill="url(#hill-back)"/>
+<path d="M 0 300 Q 200 284 380 294 Q 520 302 680 290 L 680 300 Z" fill="url(#hill-front)"/>
+<rect x="0" y="300" width="680" height="160" fill="url(#ground-grad)"/>
+<rect x="0" y="300" width="680" height="3" fill="#a88a5c" opacity=".5"/>
+<g id="ground-detail"></g>
 <g id="grass-layer"></g>
 <g id="tree-content"></g>
 </svg>
@@ -36,45 +117,82 @@
   const svgNS='http://www.w3.org/2000/svg';
   const content=document.getElementById('tree-content');
   const grass=document.getElementById('grass-layer');
+  const groundDetail=document.getElementById('ground-detail');
+  const cloudsG=document.getElementById('clouds');
   const scrubber=document.getElementById('scrubber');
   const stageLabel=document.getElementById('stage-label');
   const playBtn=document.getElementById('play-btn');
   const resetBtn=document.getElementById('reset-btn');
   const GY=300,CX=340;
 
-  // Deterministic grass tufts (stable positions)
-  const rand=(s=>()=>{s=(s*9301+49297)%233280;return s/233280})(42);
-  for(let i=0;i<55;i++){
-    const x=rand()*680;
-    if(Math.abs(x-CX)<35)continue;
-    const h=3+rand()*6;
-    const g=document.createElementNS(svgNS,'path');
-    g.setAttribute('d',`M ${x} 300 L ${(x-1).toFixed(1)} ${(300-h).toFixed(1)} M ${x} 300 L ${(x+1).toFixed(1)} ${(300-h+0.5).toFixed(1)} M ${x} 300 L ${x.toFixed(1)} ${(300-h-1).toFixed(1)}`);
-    g.setAttribute('stroke','#6b8e4e');g.setAttribute('stroke-width','0.8');g.setAttribute('fill','none');g.setAttribute('stroke-linecap','round');
-    grass.appendChild(g);
+  // Seeded RNG factory — deterministic for a given seed
+  const seeded=s=>()=>{s=(s*9301+49297)%233280;return s/233280};
+
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const easeOut=t=>1-Math.pow(1-t,2);
+  const easeOutCubic=t=>1-Math.pow(1-t,3);
+  const easeOutBack=t=>{const c=1.4;return 1+c*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
+
+  function el(tag,attrs){
+    const e=document.createElementNS(svgNS,tag);
+    for(const k in attrs)e.setAttribute(k,attrs[k]);
+    return e;
   }
 
-  // Branch skeleton — {x1,y1,x2,y2,w0 base-width,w1 tip-width,g0 start-growth,g1 end-growth,isTrunk?}
+  // ===== Static world details =====
+  // Grass tufts (richer variation than the original)
+  (function(){
+    const rand=seeded(42);
+    for(let i=0;i<70;i++){
+      const x=rand()*680;
+      if(Math.abs(x-CX)<32)continue;
+      const h=3+rand()*6;
+      const shade=rand()<0.5?'#6b8e4e':'#82a362';
+      grass.appendChild(el('path',{
+        d:`M ${x.toFixed(1)} 300 L ${(x-1).toFixed(1)} ${(300-h).toFixed(1)} M ${x.toFixed(1)} 300 L ${(x+1).toFixed(1)} ${(300-h+0.5).toFixed(1)} M ${x.toFixed(1)} 300 L ${x.toFixed(1)} ${(300-h-1).toFixed(1)}`,
+        stroke:shade,'stroke-width':'0.8',fill:'none','stroke-linecap':'round'
+      }));
+    }
+  })();
+
+  // Ground pebbles
+  (function(){
+    const rand=seeded(77);
+    for(let i=0;i<50;i++){
+      const x=rand()*680,y=304+rand()*150;
+      const r=0.5+rand()*1.3;
+      groundDetail.appendChild(el('circle',{
+        cx:x.toFixed(1),cy:y.toFixed(1),r:r.toFixed(2),
+        fill:rand()<0.5?'#a88a5c':'#b89e74',opacity:'0.55'
+      }));
+    }
+  })();
+
+  // ===== Branch skeleton (preserved from original; `rigid` added for sway) =====
   const branches=[
-    {x1:CX,y1:GY,x2:CX,y2:195,w0:16,w1:9,g0:0.15,g1:0.5,trunk:true},
-    {x1:CX-2,y1:245,x2:245,y2:200,w0:7,w1:3.5,g0:0.42,g1:0.6},
-    {x1:CX+2,y1:232,x2:435,y2:188,w0:7,w1:3.5,g0:0.44,g1:0.62},
-    {x1:CX-2,y1:212,x2:288,y2:160,w0:6,w1:3,g0:0.49,g1:0.66},
-    {x1:CX+2,y1:206,x2:392,y2:156,w0:6,w1:3,g0:0.51,g1:0.68},
-    {x1:CX,y1:198,x2:340,y2:125,w0:6,w1:3,g0:0.53,g1:0.7},
-    {x1:245,y1:200,x2:198,y2:172,w0:3,w1:1.8,g0:0.6,g1:0.74},
-    {x1:245,y1:200,x2:222,y2:222,w0:3,w1:1.8,g0:0.6,g1:0.74},
-    {x1:435,y1:188,x2:482,y2:162,w0:3,w1:1.8,g0:0.61,g1:0.75},
-    {x1:435,y1:188,x2:468,y2:216,w0:3,w1:1.8,g0:0.61,g1:0.75},
-    {x1:288,y1:160,x2:252,y2:138,w0:3,w1:1.8,g0:0.63,g1:0.77},
-    {x1:288,y1:160,x2:308,y2:142,w0:3,w1:1.8,g0:0.63,g1:0.77},
-    {x1:392,y1:156,x2:428,y2:132,w0:3,w1:1.8,g0:0.65,g1:0.79},
-    {x1:392,y1:156,x2:372,y2:138,w0:3,w1:1.8,g0:0.65,g1:0.79},
-    {x1:340,y1:125,x2:315,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81},
-    {x1:340,y1:125,x2:365,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81},
+    {x1:CX,y1:GY,x2:CX,y2:195,w0:16,w1:9,g0:0.15,g1:0.5,trunk:true,rigid:0.25},
+    {x1:CX-2,y1:245,x2:245,y2:200,w0:7,w1:3.5,g0:0.42,g1:0.6,rigid:0.8},
+    {x1:CX+2,y1:232,x2:435,y2:188,w0:7,w1:3.5,g0:0.44,g1:0.62,rigid:0.8},
+    {x1:CX-2,y1:212,x2:288,y2:160,w0:6,w1:3,g0:0.49,g1:0.66,rigid:0.85},
+    {x1:CX+2,y1:206,x2:392,y2:156,w0:6,w1:3,g0:0.51,g1:0.68,rigid:0.85},
+    {x1:CX,y1:198,x2:340,y2:125,w0:6,w1:3,g0:0.53,g1:0.7,rigid:0.9},
+    {x1:245,y1:200,x2:198,y2:172,w0:3,w1:1.8,g0:0.6,g1:0.74,rigid:1.05},
+    {x1:245,y1:200,x2:222,y2:222,w0:3,w1:1.8,g0:0.6,g1:0.74,rigid:1.05},
+    {x1:435,y1:188,x2:482,y2:162,w0:3,w1:1.8,g0:0.61,g1:0.75,rigid:1.05},
+    {x1:435,y1:188,x2:468,y2:216,w0:3,w1:1.8,g0:0.61,g1:0.75,rigid:1.05},
+    {x1:288,y1:160,x2:252,y2:138,w0:3,w1:1.8,g0:0.63,g1:0.77,rigid:1.1},
+    {x1:288,y1:160,x2:308,y2:142,w0:3,w1:1.8,g0:0.63,g1:0.77,rigid:1.1},
+    {x1:392,y1:156,x2:428,y2:132,w0:3,w1:1.8,g0:0.65,g1:0.79,rigid:1.1},
+    {x1:392,y1:156,x2:372,y2:138,w0:3,w1:1.8,g0:0.65,g1:0.79,rigid:1.1},
+    {x1:340,y1:125,x2:315,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81,rigid:1.15},
+    {x1:340,y1:125,x2:365,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81,rigid:1.15},
   ];
 
   const leafShades=['#5da75d','#6fba6b','#4a9048','#7fc67a'];
+  const leafHighlight='#b9e0a8';
+  const leafShadow='#3d6a3c';
+
   const leafClusters=[
     {x:198,y:172,r:26,g0:0.7,g1:0.88,s:0},
     {x:222,y:222,r:23,g0:0.71,g1:0.89,s:2},
@@ -97,26 +215,31 @@
     {x:415,y:125,g0:0.94},
   ];
 
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-
-  function el(tag,attrs){
-    const e=document.createElementNS(svgNS,tag);
-    for(const k in attrs)e.setAttribute(k,attrs[k]);
-    return e;
+  // ===== Sway: height-based displacement, rigidity-modulated =====
+  function swayOffset(x,y,t,strength,rigidity){
+    if(strength<=0||rigidity<=0)return{dx:0,dy:0};
+    const h=Math.max(0,GY-y);
+    const amp=(h/140)*1.4*strength*rigidity;
+    const phase=(x-CX)*0.012;
+    return{
+      dx:Math.sin(t/950+phase)*amp+Math.sin(t/430+phase*2.1)*amp*0.18,
+      dy:Math.sin(t/1450+phase+0.9)*amp*0.25
+    };
   }
 
+  // ===== Drawing =====
   function drawRoot(sx,sy,dx,dy,t,thick){
     if(t<=0)return;
     const ex=sx+dx*t,ey=sy+dy*t;
     const mx=sx+dx*t*0.5+(dx>0?4:dx<0?-4:0);
     const my=sy+dy*t*0.45;
     content.appendChild(el('path',{
-      d:`M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`,
+      d:`M ${sx} ${sy} Q ${mx.toFixed(2)} ${my.toFixed(2)} ${ex.toFixed(2)} ${ey.toFixed(2)}`,
       stroke:'#6b4423','stroke-width':thick||1.6,fill:'none','stroke-linecap':'round'
     }));
   }
 
+  // Trunk: quadrilateral with shaded right side + highlight on left
   function drawTrunk(x1,y1,x2,y2,w0,w1){
     const dx=x2-x1,dy=y2-y1;
     const len=Math.sqrt(dx*dx+dy*dy)||1;
@@ -129,58 +252,222 @@
       d:`M ${ax.toFixed(2)} ${ay.toFixed(2)} L ${bx.toFixed(2)} ${by.toFixed(2)} L ${cx.toFixed(2)} ${cy.toFixed(2)} L ${dxp.toFixed(2)} ${dyp.toFixed(2)} Z`,
       fill:'#6b4423'
     }));
-    // subtle bark highlight
+    // Shaded side (right half of trunk): x1 -> ax -> bx -> x2 -> close
+    content.appendChild(el('path',{
+      d:`M ${x1.toFixed(2)} ${y1.toFixed(2)} L ${ax.toFixed(2)} ${ay.toFixed(2)} L ${bx.toFixed(2)} ${by.toFixed(2)} L ${x2.toFixed(2)} ${y2.toFixed(2)} Z`,
+      fill:'#4f2d13',opacity:'0.3'
+    }));
+    // Highlight line (left)
     content.appendChild(el('line',{
-      x1:x1-w0*0.18,y1:y1,x2:x2-w1*0.18,y2:y2,
-      stroke:'#5a3718','stroke-width':'1',opacity:'0.5','stroke-linecap':'round'
+      x1:(x1-nx*w0*0.22).toFixed(2),y1:(y1-ny*w0*0.22).toFixed(2),
+      x2:(x2-nx*w1*0.22).toFixed(2),y2:(y2-ny*w1*0.22).toFixed(2),
+      stroke:'#8c6040','stroke-width':'1.3',opacity:'0.5','stroke-linecap':'round'
     }));
   }
 
+  // Branch: quadratic curve, bowed upward by its horizontal reach
   function drawBranch(x1,y1,x2,y2,w){
     if(w<=0)return;
-    content.appendChild(el('line',{
-      x1,y1,x2,y2,stroke:'#6b4423','stroke-width':w,'stroke-linecap':'round'
+    const horiz=Math.abs(x2-x1);
+    const bow=horiz*0.16+2;
+    const mx=(x1+x2)/2;
+    const my=(y1+y2)/2-bow;
+    content.appendChild(el('path',{
+      d:`M ${x1.toFixed(2)} ${y1.toFixed(2)} Q ${mx.toFixed(2)} ${my.toFixed(2)} ${x2.toFixed(2)} ${y2.toFixed(2)}`,
+      stroke:'#5e3b1f','stroke-width':w.toFixed(2),fill:'none','stroke-linecap':'round'
     }));
-  }
-
-  function drawLeafCluster(cx,cy,r,s){
-    if(r<=0.5)return;
-    const base=leafShades[s];
-    const alt=leafShades[(s+1)%4];
-    // soft outer
-    content.appendChild(el('circle',{cx,cy,r:r*1.15,fill:base,opacity:'0.45'}));
-    // clump of overlapping circles for organic shape
-    const positions=[[0,0,1],[-0.45,-0.1,0.75],[0.4,-0.2,0.78],[-0.15,-0.5,0.7],[0.2,0.35,0.72],[-0.35,0.3,0.65]];
-    for(const[dx,dy,sc]of positions){
-      content.appendChild(el('circle',{cx:cx+dx*r,cy:cy+dy*r,r:r*sc,fill:base}));
+    // Light highlight on top of thicker branches
+    if(w>2){
+      content.appendChild(el('path',{
+        d:`M ${x1.toFixed(2)} ${(y1-w*0.25).toFixed(2)} Q ${mx.toFixed(2)} ${(my-w*0.25).toFixed(2)} ${x2.toFixed(2)} ${(y2-w*0.2).toFixed(2)}`,
+        stroke:'#8c6040','stroke-width':(w*0.35).toFixed(2),fill:'none','stroke-linecap':'round',opacity:'0.45'
+      }));
     }
-    // highlight
-    content.appendChild(el('circle',{cx:cx-r*0.3,cy:cy-r*0.35,r:r*0.35,fill:alt,opacity:'0.85'}));
-    content.appendChild(el('circle',{cx:cx-r*0.45,cy:cy-r*0.5,r:r*0.18,fill:'#b9e0a8',opacity:'0.7'}));
   }
 
-  function drawFlower(cx,cy,size){
+  // Leaf cluster: many individually-staggered rotated leaves + bright highlights
+  function drawLeafCluster(cx,cy,targetR,shadeIdx,clusterT,swayT,swayStr,sx0,sy0){
+    if(clusterT<=0||targetR<=0)return;
+    // Seed from the STABLE original cluster coords, not the swayed cx/cy
+    const rng=seeded(Math.round(sx0*100)+Math.round(sy0));
+    const base=leafShades[shadeIdx];
+
+    // Soft shadow blob behind
+    const bgR=targetR*Math.min(1,clusterT*1.3);
+    content.appendChild(el('ellipse',{
+      cx:cx.toFixed(2),cy:cy.toFixed(2),
+      rx:(bgR*1.1).toFixed(2),ry:(bgR*0.9).toFixed(2),
+      fill:leafShadow,opacity:(0.28*Math.min(1,clusterT)).toFixed(3)
+    }));
+
+    // Individual leaves
+    const numLeaves=Math.max(8,Math.round(targetR*1.1));
+    const leaves=[];
+    for(let i=0;i<numLeaves;i++){
+      leaves.push({
+        a:rng()*Math.PI*2,
+        d:Math.sqrt(rng())*targetR*0.92,
+        rot:rng()*360,
+        size:targetR*(0.20+rng()*0.12),
+        shade:rng()<0.12?leafHighlight:(rng()<0.55?base:leafShades[Math.floor(rng()*4)]),
+        opacity:0.85+rng()*0.15,
+        jitter:rng()*Math.PI*2
+      });
+    }
+
+    for(let i=0;i<leaves.length;i++){
+      const lf=leaves[i];
+      // Stagger: each leaf pops in at a delayed t within the cluster's growth window
+      const leafDelay=(i/numLeaves)*0.55;
+      const leafT=clamp((clusterT-leafDelay)/Math.max(0.01,1-leafDelay),0,1);
+      if(leafT<=0)continue;
+      const et=easeOut(leafT);
+
+      const lx=cx+Math.cos(lf.a)*lf.d;
+      const ly=cy+Math.sin(lf.a)*lf.d;
+      // Subtle per-leaf micro-sway in position only — rotation stays fixed
+      const phase=lf.jitter+cx*0.008;
+      const sx=Math.sin(swayT/1200+phase)*0.28*swayStr;
+      const sy=Math.cos(swayT/1500+phase)*0.12*swayStr;
+
+      const rx=lf.size*1.45*et,ry=lf.size*0.55*et;
+      const fx=(lx+sx).toFixed(2),fy=(ly+sy).toFixed(2);
+
+      content.appendChild(el('ellipse',{
+        cx:fx,cy:fy,rx:rx.toFixed(2),ry:ry.toFixed(2),
+        fill:lf.shade,opacity:lf.opacity.toFixed(2),
+        transform:`rotate(${lf.rot.toFixed(1)} ${fx} ${fy})`
+      }));
+    }
+
+    // Sunward highlights (upper-left side) — appear near end of cluster growth
+    if(clusterT>0.7){
+      const hT=clamp((clusterT-0.7)/0.3,0,1);
+      const hiRng=seeded(Math.round(sx0)*31+7);
+      const numHi=Math.max(3,Math.round(targetR*0.22));
+      for(let i=0;i<numHi;i++){
+        const a=-Math.PI*0.85+hiRng()*Math.PI*0.55;
+        const d=hiRng()*targetR*0.5+targetR*0.2;
+        const lx=cx+Math.cos(a)*d,ly=cy+Math.sin(a)*d;
+        const rot=hiRng()*360;
+        const sz=targetR*0.16*hT;
+        content.appendChild(el('ellipse',{
+          cx:lx.toFixed(2),cy:ly.toFixed(2),
+          rx:(sz*1.4).toFixed(2),ry:(sz*0.5).toFixed(2),
+          fill:leafHighlight,opacity:'0.72',
+          transform:`rotate(${rot.toFixed(1)} ${lx.toFixed(2)} ${ly.toFixed(2)})`
+        }));
+      }
+    }
+  }
+
+  // Flower: layered outer + inner petals, gradient center, stamen dots
+  function drawFlower(cx,cy,size,bloomT){
     if(size<=0.3)return;
+    const rotOff=cx*0.06;
+    // Outer petals
     for(let i=0;i<5;i++){
-      const a=(i/5)*Math.PI*2-Math.PI/2;
-      const px=cx+Math.cos(a)*size*0.85;
-      const py=cy+Math.sin(a)*size*0.85;
-      content.appendChild(el('circle',{cx:px,cy:py,r:size*0.65,fill:'#ffb8d4'}));
+      const angle=(i/5)*Math.PI*2-Math.PI/2+rotOff;
+      const px=cx+Math.cos(angle)*size*0.62;
+      const py=cy+Math.sin(angle)*size*0.62;
+      const r=angle*180/Math.PI+90;
+      content.appendChild(el('ellipse',{
+        cx:px.toFixed(2),cy:py.toFixed(2),
+        rx:(size*0.78).toFixed(2),ry:(size*0.44).toFixed(2),
+        fill:'#ec8fb4',
+        transform:`rotate(${r.toFixed(1)} ${px.toFixed(2)} ${py.toFixed(2)})`
+      }));
     }
-    content.appendChild(el('circle',{cx,cy,r:size*0.45,fill:'#ffe066'}));
+    // Inner brighter petals
+    for(let i=0;i<5;i++){
+      const angle=(i/5)*Math.PI*2-Math.PI/2+rotOff;
+      const px=cx+Math.cos(angle)*size*0.48;
+      const py=cy+Math.sin(angle)*size*0.48;
+      const r=angle*180/Math.PI+90;
+      content.appendChild(el('ellipse',{
+        cx:px.toFixed(2),cy:py.toFixed(2),
+        rx:(size*0.55).toFixed(2),ry:(size*0.28).toFixed(2),
+        fill:'#ffc8dc',
+        transform:`rotate(${r.toFixed(1)} ${px.toFixed(2)} ${py.toFixed(2)})`
+      }));
+    }
+    // Center
+    content.appendChild(el('circle',{cx:cx.toFixed(2),cy:cy.toFixed(2),r:(size*0.38).toFixed(2),fill:'#ffd866'}));
+    content.appendChild(el('circle',{cx:(cx-size*0.1).toFixed(2),cy:(cy-size*0.1).toFixed(2),r:(size*0.17).toFixed(2),fill:'#fff2b8'}));
+    // Stamen dots
+    if(bloomT>0.7){
+      for(let i=0;i<6;i++){
+        const a=(i/6)*Math.PI*2;
+        content.appendChild(el('circle',{
+          cx:(cx+Math.cos(a)*size*0.22).toFixed(2),
+          cy:(cy+Math.sin(a)*size*0.22).toFixed(2),
+          r:(size*0.06).toFixed(2),fill:'#c17a1a'
+        }));
+      }
+    }
   }
 
-  function render(growth){
+  // Cotyledons: seedling's tiny first leaves on a green shoot
+  function drawCotyledons(fade,shootT,swayT,swayStr){
+    if(fade<=0||shootT<=0)return;
+    const stemTop=GY-17*shootT;
+    content.appendChild(el('path',{
+      d:`M ${CX} ${GY+2} Q ${(CX+0.5).toFixed(2)} ${(GY-6).toFixed(2)} ${CX} ${stemTop.toFixed(2)}`,
+      stroke:'#6fba6b','stroke-width':(1.9*shootT).toFixed(2),
+      fill:'none','stroke-linecap':'round',opacity:fade.toFixed(2)
+    }));
+    if(shootT>0.5){
+      const leafT=clamp((shootT-0.5)/0.5,0,1);
+      const sz=3.4*leafT;
+      const ly=stemTop+0.5;
+      const sw=Math.sin(swayT/700)*0.4*swayStr;
+      // Left cotyledon
+      content.appendChild(el('ellipse',{
+        cx:(CX-3-sw).toFixed(2),cy:ly.toFixed(2),
+        rx:(sz*1.3).toFixed(2),ry:(sz*0.7).toFixed(2),
+        fill:'#7fc67a',opacity:fade.toFixed(2),
+        transform:`rotate(-22 ${(CX-3-sw).toFixed(2)} ${ly.toFixed(2)})`
+      }));
+      // Right cotyledon
+      content.appendChild(el('ellipse',{
+        cx:(CX+3+sw).toFixed(2),cy:ly.toFixed(2),
+        rx:(sz*1.3).toFixed(2),ry:(sz*0.7).toFixed(2),
+        fill:'#7fc67a',opacity:fade.toFixed(2),
+        transform:`rotate(22 ${(CX+3+sw).toFixed(2)} ${ly.toFixed(2)})`
+      }));
+    }
+  }
+
+  // Cloud drift — very slow right-ward pan that wraps
+  function updateClouds(t){
+    const drift=((t*0.012)%160);
+    cloudsG.setAttribute('transform',`translate(${drift.toFixed(1)} 0)`);
+  }
+
+  // ===== Main render =====
+  function render(growth,time){
     content.innerHTML='';
 
-    // Roots (back layer)
+    const swayStrength=clamp((growth-0.3)/0.35,0,1);
+
+    // Cast shadow on ground (grows with tree)
+    if(growth>0.2){
+      const sT=easeOut(clamp((growth-0.2)/0.6,0,1));
+      content.appendChild(el('ellipse',{
+        cx:(CX+10).toFixed(2),cy:(GY+7).toFixed(2),
+        rx:(95*sT).toFixed(2),ry:(6*sT).toFixed(2),
+        fill:'#000',opacity:(0.14*sT).toFixed(3)
+      }));
+    }
+
+    // Roots
     if(growth>0.08){
-      const rt=clamp((growth-0.08)/0.2,0,1);
+      const rt=easeOutCubic(clamp((growth-0.08)/0.2,0,1));
       drawRoot(CX,GY+4,0,58,rt,2);
       drawRoot(CX,GY+6,-42,48,rt,1.8);
       drawRoot(CX,GY+6,42,48,rt,1.8);
       if(growth>0.15){
-        const ft=clamp((growth-0.15)/0.2,0,1);
+        const ft=easeOutCubic(clamp((growth-0.15)/0.2,0,1));
         drawRoot(CX-22,GY+30,-20,18,ft,1.2);
         drawRoot(CX+22,GY+30,20,18,ft,1.2);
         drawRoot(CX-8,GY+52,-12,10,ft,1);
@@ -190,46 +477,71 @@
       }
     }
 
-    // Seed (above roots, fades as trunk takes over)
+    // Seed (with shadow, highlight, and crack)
     if(growth<0.26){
       const opacity=growth<0.12?1:lerp(1,0,(growth-0.12)/0.14);
-      content.appendChild(el('ellipse',{cx:CX,cy:GY+8,rx:7.5,ry:5,fill:'#8b5a2b',opacity}));
-      content.appendChild(el('ellipse',{cx:CX-1.2,cy:GY+6.5,rx:3,ry:2,fill:'#c89968',opacity}));
-      // seed crack at germination
+      content.appendChild(el('ellipse',{cx:CX,cy:GY+12,rx:7,ry:1.6,fill:'#3d2513',opacity:(opacity*0.4).toFixed(3)}));
+      content.appendChild(el('ellipse',{cx:CX,cy:GY+8,rx:7.5,ry:5,fill:'#8b5a2b',opacity:opacity.toFixed(3)}));
+      content.appendChild(el('ellipse',{cx:CX-1.2,cy:GY+6.5,rx:3,ry:2,fill:'#c89968',opacity:opacity.toFixed(3)}));
       if(growth>0.1&&growth<0.22){
-        content.appendChild(el('line',{x1:CX-3,y1:GY+6,x2:CX+3,y2:GY+10,stroke:'#3d2513','stroke-width':0.8,opacity}));
+        const crackT=clamp((growth-0.1)/0.12,0,1);
+        const crackW=2+crackT*3;
+        content.appendChild(el('line',{
+          x1:(CX-crackW).toFixed(2),y1:(GY+6.5-crackT*0.5).toFixed(2),
+          x2:(CX+crackW).toFixed(2),y2:(GY+10+crackT*0.5).toFixed(2),
+          stroke:'#3d2513','stroke-width':(0.8+crackT*0.5).toFixed(2),opacity:opacity.toFixed(3)
+        }));
       }
     }
 
-    // Trunk + branches
+    // Cotyledon sprout — brief seedling stage, fades out as trunk takes over
+    if(growth>0.13&&growth<0.32){
+      const shootT=easeOutCubic(clamp((growth-0.13)/0.08,0,1));
+      const fade=growth<0.24?1:clamp((0.32-growth)/0.08,0,1);
+      drawCotyledons(fade,shootT,time,0.25);
+    }
+
+    // Trunk + branches with sway
     for(const b of branches){
       if(growth<b.g0)continue;
-      const t=clamp((growth-b.g0)/(b.g1-b.g0),0,1);
-      const x2=lerp(b.x1,b.x2,t);
-      const y2=lerp(b.y1,b.y2,t);
+      const rawT=clamp((growth-b.g0)/(b.g1-b.g0),0,1);
+      const t=easeOutCubic(rawT);
       const widthFade=clamp((growth-b.g0+0.03)/0.08,0,1);
+
+      const rigidBase=b.rigid!=null?b.rigid*0.5:0.5;
+      const rigidTip=b.rigid!=null?b.rigid:1.0;
+      const baseSway=swayOffset(b.x1,b.y1,time,swayStrength,rigidBase);
+      const tipSway=swayOffset(b.x2,b.y2,time,swayStrength,rigidTip);
+
+      const x1=b.x1+baseSway.dx,y1=b.y1+baseSway.dy;
+      const x2r=lerp(b.x1,b.x2,t),y2r=lerp(b.y1,b.y2,t);
+      const x2=x2r+tipSway.dx*t,y2=y2r+tipSway.dy*t;
+
       if(b.trunk){
         const w0=b.w0*widthFade;
         const w1=lerp(b.w0,b.w1,t)*widthFade;
-        drawTrunk(b.x1,b.y1,x2,y2,w0,w1);
+        drawTrunk(x1,y1,x2,y2,w0,w1);
       }else{
         const w=lerp(b.w0,b.w1,t)*widthFade;
-        drawBranch(b.x1,b.y1,x2,y2,w);
+        drawBranch(x1,y1,x2,y2,w);
       }
     }
 
-    // Leaves (on top of branches)
+    // Leaf clusters
     for(const l of leafClusters){
       if(growth<l.g0)continue;
-      const t=clamp((growth-l.g0)/(l.g1-l.g0),0,1);
-      drawLeafCluster(l.x,l.y,l.r*t,l.s);
+      const clusterT=easeOut(clamp((growth-l.g0)/(l.g1-l.g0),0,1));
+      const sway=swayOffset(l.x,l.y,time,swayStrength,1.15);
+      drawLeafCluster(l.x+sway.dx,l.y+sway.dy,l.r,l.s,clusterT,time,swayStrength,l.x,l.y);
     }
 
-    // Flowers
+    // Flowers (with back-ease so they "pop" into bloom)
     for(const f of flowers){
       if(growth<f.g0)continue;
-      const t=clamp((growth-f.g0)/0.05,0,1);
-      drawFlower(f.x,f.y,4.2*t);
+      const rawT=clamp((growth-f.g0)/0.05,0,1);
+      const bloomT=easeOutBack(rawT);
+      const sway=swayOffset(f.x,f.y,time,swayStrength,1.15);
+      drawFlower(f.x+sway.dx,f.y+sway.dy,4.2*Math.max(0,bloomT),rawT);
     }
 
     // Stage label
@@ -241,61 +553,60 @@
     else if(growth<0.76)stage='Young tree';
     else if(growth<0.9)stage='Mature tree';
     else stage='In bloom';
-    stageLabel.textContent=stage;
+    if(stageLabel.textContent!==stage)stageLabel.textContent=stage;
+
+    updateClouds(time);
   }
 
-  // Animation loop
-  let playing=false,rafId=null,startT=null,startG=0;
+  // ===== Animation loop — runs continuously so sway works even after growth completes =====
+  let growing=false;
+  let growthFrom=0;
+  let startedAt=0; // rAF timestamp when growth began
   const DURATION=14000;
 
   function tick(t){
-    if(!playing)return;
-    if(!startT)startT=t;
-    let g=startG+(t-startT)/DURATION;
-    if(g>=1){
-      g=1;playing=false;playBtn.textContent='Play again';
+    let g;
+    if(growing){
+      if(startedAt===0)startedAt=t;
+      g=growthFrom+(t-startedAt)/DURATION;
+      if(g>=1){
+        g=1;growing=false;playBtn.textContent='Play again';
+      }
+      scrubber.value=Math.round(g*1000);
+    }else{
+      g=parseInt(scrubber.value,10)/1000;
     }
-    scrubber.value=Math.round(g*1000);
-    render(g);
-    if(playing)rafId=requestAnimationFrame(tick);
+    render(g,t);
+    requestAnimationFrame(tick);
   }
+  requestAnimationFrame(tick);
 
   playBtn.addEventListener('click',()=>{
-    if(playing){
-      playing=false;playBtn.textContent='Play';
-      if(rafId)cancelAnimationFrame(rafId);
-      return;
+    if(growing){
+      growing=false;playBtn.textContent='Play';return;
     }
-    let cur=parseInt(scrubber.value)/1000;
+    let cur=parseInt(scrubber.value,10)/1000;
     if(cur>=0.999){cur=0;scrubber.value=0}
-    startG=cur;startT=null;playing=true;
+    growthFrom=cur;startedAt=0;growing=true;
     playBtn.textContent='Pause';
-    rafId=requestAnimationFrame(tick);
   });
 
   resetBtn.addEventListener('click',()=>{
-    playing=false;
-    if(rafId)cancelAnimationFrame(rafId);
-    scrubber.value=0;playBtn.textContent='Play';
-    render(0);
+    growing=false;scrubber.value=0;playBtn.textContent='Play';
   });
 
   scrubber.addEventListener('input',()=>{
-    if(playing){
-      playing=false;playBtn.textContent='Play';
-      if(rafId)cancelAnimationFrame(rafId);
-    }
-    render(parseInt(scrubber.value)/1000);
+    if(growing){growing=false;playBtn.textContent='Play'}
   });
 
-  render(0);
-  // Auto-start after a brief pause so the scene is visible first
+  // Auto-start after brief pause so the empty scene registers first
   setTimeout(()=>{
-    if(parseInt(scrubber.value)===0&&!playing){
-      startG=0;startT=null;playing=true;
+    if(parseInt(scrubber.value,10)===0&&!growing){
+      growthFrom=0;startedAt=0;growing=true;
       playBtn.textContent='Pause';
-      rafId=requestAnimationFrame(tick);
     }
   },600);
 })();
 </script>
+</body>
+</html>
