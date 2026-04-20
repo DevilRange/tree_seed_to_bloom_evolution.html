@@ -1,0 +1,301 @@
+<style>
+.controls-bar{display:flex;align-items:center;gap:12px;padding:12px 0 0;flex-wrap:wrap}
+.stage-badge{font-size:13px;color:var(--color-text-secondary);padding:6px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);min-width:110px;text-align:center;font-weight:500}
+.growth-track{flex:1;min-width:180px}
+.scene-wrap{border-radius:var(--border-radius-lg);overflow:hidden;line-height:0}
+</style>
+
+<h2 class="sr-only">Animation of a tree growing from seed, through germination and sapling stages, to a flowering mature tree</h2>
+
+<div class="scene-wrap">
+<svg id="tree-svg" viewBox="0 0 680 460" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Tree growth animation</title>
+<desc>An interactive illustration of a seed sprouting roots and a shoot, growing into a sapling, then a mature flowering tree.</desc>
+
+<rect x="0" y="0" width="680" height="300" fill="#dbeaf3"/>
+<circle cx="570" cy="68" r="40" fill="#f9d976" opacity="0.25"/>
+<circle cx="570" cy="68" r="28" fill="#f9d976"/>
+<path d="M 0 300 Q 130 268 280 290 Q 420 310 560 282 Q 620 273 680 286 L 680 300 Z" fill="#b8d4b0" opacity="0.45"/>
+<path d="M 0 300 Q 200 284 380 294 Q 520 302 680 290 L 680 300 Z" fill="#9ec494" opacity="0.55"/>
+<rect x="0" y="300" width="680" height="160" fill="#d6c49e"/>
+<rect x="0" y="300" width="680" height="4" fill="#a88a5c" opacity="0.6"/>
+<g id="grass-layer"></g>
+<g id="tree-content"></g>
+</svg>
+</div>
+
+<div class="controls-bar">
+<button id="play-btn">Play</button>
+<button id="reset-btn">Reset</button>
+<div class="stage-badge" id="stage-label">Seed</div>
+<input type="range" min="0" max="1000" value="0" step="1" id="scrubber" class="growth-track" aria-label="Growth progress"/>
+</div>
+
+<script>
+(function(){
+  const svgNS='http://www.w3.org/2000/svg';
+  const content=document.getElementById('tree-content');
+  const grass=document.getElementById('grass-layer');
+  const scrubber=document.getElementById('scrubber');
+  const stageLabel=document.getElementById('stage-label');
+  const playBtn=document.getElementById('play-btn');
+  const resetBtn=document.getElementById('reset-btn');
+  const GY=300,CX=340;
+
+  // Deterministic grass tufts (stable positions)
+  const rand=(s=>()=>{s=(s*9301+49297)%233280;return s/233280})(42);
+  for(let i=0;i<55;i++){
+    const x=rand()*680;
+    if(Math.abs(x-CX)<35)continue;
+    const h=3+rand()*6;
+    const g=document.createElementNS(svgNS,'path');
+    g.setAttribute('d',`M ${x} 300 L ${(x-1).toFixed(1)} ${(300-h).toFixed(1)} M ${x} 300 L ${(x+1).toFixed(1)} ${(300-h+0.5).toFixed(1)} M ${x} 300 L ${x.toFixed(1)} ${(300-h-1).toFixed(1)}`);
+    g.setAttribute('stroke','#6b8e4e');g.setAttribute('stroke-width','0.8');g.setAttribute('fill','none');g.setAttribute('stroke-linecap','round');
+    grass.appendChild(g);
+  }
+
+  // Branch skeleton — {x1,y1,x2,y2,w0 base-width,w1 tip-width,g0 start-growth,g1 end-growth,isTrunk?}
+  const branches=[
+    {x1:CX,y1:GY,x2:CX,y2:195,w0:16,w1:9,g0:0.15,g1:0.5,trunk:true},
+    {x1:CX-2,y1:245,x2:245,y2:200,w0:7,w1:3.5,g0:0.42,g1:0.6},
+    {x1:CX+2,y1:232,x2:435,y2:188,w0:7,w1:3.5,g0:0.44,g1:0.62},
+    {x1:CX-2,y1:212,x2:288,y2:160,w0:6,w1:3,g0:0.49,g1:0.66},
+    {x1:CX+2,y1:206,x2:392,y2:156,w0:6,w1:3,g0:0.51,g1:0.68},
+    {x1:CX,y1:198,x2:340,y2:125,w0:6,w1:3,g0:0.53,g1:0.7},
+    {x1:245,y1:200,x2:198,y2:172,w0:3,w1:1.8,g0:0.6,g1:0.74},
+    {x1:245,y1:200,x2:222,y2:222,w0:3,w1:1.8,g0:0.6,g1:0.74},
+    {x1:435,y1:188,x2:482,y2:162,w0:3,w1:1.8,g0:0.61,g1:0.75},
+    {x1:435,y1:188,x2:468,y2:216,w0:3,w1:1.8,g0:0.61,g1:0.75},
+    {x1:288,y1:160,x2:252,y2:138,w0:3,w1:1.8,g0:0.63,g1:0.77},
+    {x1:288,y1:160,x2:308,y2:142,w0:3,w1:1.8,g0:0.63,g1:0.77},
+    {x1:392,y1:156,x2:428,y2:132,w0:3,w1:1.8,g0:0.65,g1:0.79},
+    {x1:392,y1:156,x2:372,y2:138,w0:3,w1:1.8,g0:0.65,g1:0.79},
+    {x1:340,y1:125,x2:315,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81},
+    {x1:340,y1:125,x2:365,y2:103,w0:3,w1:1.8,g0:0.67,g1:0.81},
+  ];
+
+  const leafShades=['#5da75d','#6fba6b','#4a9048','#7fc67a'];
+  const leafClusters=[
+    {x:198,y:172,r:26,g0:0.7,g1:0.88,s:0},
+    {x:222,y:222,r:23,g0:0.71,g1:0.89,s:2},
+    {x:482,y:162,r:26,g0:0.72,g1:0.9,s:0},
+    {x:468,y:216,r:23,g0:0.73,g1:0.91,s:2},
+    {x:252,y:138,r:27,g0:0.74,g1:0.92,s:1},
+    {x:308,y:142,r:26,g0:0.75,g1:0.93,s:3},
+    {x:428,y:132,r:27,g0:0.76,g1:0.94,s:1},
+    {x:372,y:138,r:26,g0:0.75,g1:0.93,s:3},
+    {x:315,y:103,r:30,g0:0.77,g1:0.95,s:0},
+    {x:365,y:103,r:30,g0:0.77,g1:0.95,s:0},
+    {x:340,y:88,r:33,g0:0.78,g1:0.96,s:1},
+  ];
+
+  const flowers=[
+    {x:205,y:178,g0:0.86},{x:228,y:213,g0:0.88},{x:475,y:168,g0:0.87},
+    {x:462,y:208,g0:0.89},{x:258,y:148,g0:0.9},{x:422,y:142,g0:0.91},
+    {x:320,y:115,g0:0.92},{x:360,y:113,g0:0.93},{x:340,y:95,g0:0.94},
+    {x:300,y:152,g0:0.88},{x:380,y:148,g0:0.89},{x:265,y:128,g0:0.94},
+    {x:415,y:125,g0:0.94},
+  ];
+
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+  function el(tag,attrs){
+    const e=document.createElementNS(svgNS,tag);
+    for(const k in attrs)e.setAttribute(k,attrs[k]);
+    return e;
+  }
+
+  function drawRoot(sx,sy,dx,dy,t,thick){
+    if(t<=0)return;
+    const ex=sx+dx*t,ey=sy+dy*t;
+    const mx=sx+dx*t*0.5+(dx>0?4:dx<0?-4:0);
+    const my=sy+dy*t*0.45;
+    content.appendChild(el('path',{
+      d:`M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`,
+      stroke:'#6b4423','stroke-width':thick||1.6,fill:'none','stroke-linecap':'round'
+    }));
+  }
+
+  function drawTrunk(x1,y1,x2,y2,w0,w1){
+    const dx=x2-x1,dy=y2-y1;
+    const len=Math.sqrt(dx*dx+dy*dy)||1;
+    const nx=-dy/len,ny=dx/len;
+    const ax=x1+nx*w0/2,ay=y1+ny*w0/2;
+    const bx=x2+nx*w1/2,by=y2+ny*w1/2;
+    const cx=x2-nx*w1/2,cy=y2-ny*w1/2;
+    const dxp=x1-nx*w0/2,dyp=y1-ny*w0/2;
+    content.appendChild(el('path',{
+      d:`M ${ax.toFixed(2)} ${ay.toFixed(2)} L ${bx.toFixed(2)} ${by.toFixed(2)} L ${cx.toFixed(2)} ${cy.toFixed(2)} L ${dxp.toFixed(2)} ${dyp.toFixed(2)} Z`,
+      fill:'#6b4423'
+    }));
+    // subtle bark highlight
+    content.appendChild(el('line',{
+      x1:x1-w0*0.18,y1:y1,x2:x2-w1*0.18,y2:y2,
+      stroke:'#5a3718','stroke-width':'1',opacity:'0.5','stroke-linecap':'round'
+    }));
+  }
+
+  function drawBranch(x1,y1,x2,y2,w){
+    if(w<=0)return;
+    content.appendChild(el('line',{
+      x1,y1,x2,y2,stroke:'#6b4423','stroke-width':w,'stroke-linecap':'round'
+    }));
+  }
+
+  function drawLeafCluster(cx,cy,r,s){
+    if(r<=0.5)return;
+    const base=leafShades[s];
+    const alt=leafShades[(s+1)%4];
+    // soft outer
+    content.appendChild(el('circle',{cx,cy,r:r*1.15,fill:base,opacity:'0.45'}));
+    // clump of overlapping circles for organic shape
+    const positions=[[0,0,1],[-0.45,-0.1,0.75],[0.4,-0.2,0.78],[-0.15,-0.5,0.7],[0.2,0.35,0.72],[-0.35,0.3,0.65]];
+    for(const[dx,dy,sc]of positions){
+      content.appendChild(el('circle',{cx:cx+dx*r,cy:cy+dy*r,r:r*sc,fill:base}));
+    }
+    // highlight
+    content.appendChild(el('circle',{cx:cx-r*0.3,cy:cy-r*0.35,r:r*0.35,fill:alt,opacity:'0.85'}));
+    content.appendChild(el('circle',{cx:cx-r*0.45,cy:cy-r*0.5,r:r*0.18,fill:'#b9e0a8',opacity:'0.7'}));
+  }
+
+  function drawFlower(cx,cy,size){
+    if(size<=0.3)return;
+    for(let i=0;i<5;i++){
+      const a=(i/5)*Math.PI*2-Math.PI/2;
+      const px=cx+Math.cos(a)*size*0.85;
+      const py=cy+Math.sin(a)*size*0.85;
+      content.appendChild(el('circle',{cx:px,cy:py,r:size*0.65,fill:'#ffb8d4'}));
+    }
+    content.appendChild(el('circle',{cx,cy,r:size*0.45,fill:'#ffe066'}));
+  }
+
+  function render(growth){
+    content.innerHTML='';
+
+    // Roots (back layer)
+    if(growth>0.08){
+      const rt=clamp((growth-0.08)/0.2,0,1);
+      drawRoot(CX,GY+4,0,58,rt,2);
+      drawRoot(CX,GY+6,-42,48,rt,1.8);
+      drawRoot(CX,GY+6,42,48,rt,1.8);
+      if(growth>0.15){
+        const ft=clamp((growth-0.15)/0.2,0,1);
+        drawRoot(CX-22,GY+30,-20,18,ft,1.2);
+        drawRoot(CX+22,GY+30,20,18,ft,1.2);
+        drawRoot(CX-8,GY+52,-12,10,ft,1);
+        drawRoot(CX+8,GY+52,12,10,ft,1);
+        drawRoot(CX,GY+58,-6,8,ft,1);
+        drawRoot(CX,GY+58,6,8,ft,1);
+      }
+    }
+
+    // Seed (above roots, fades as trunk takes over)
+    if(growth<0.26){
+      const opacity=growth<0.12?1:lerp(1,0,(growth-0.12)/0.14);
+      content.appendChild(el('ellipse',{cx:CX,cy:GY+8,rx:7.5,ry:5,fill:'#8b5a2b',opacity}));
+      content.appendChild(el('ellipse',{cx:CX-1.2,cy:GY+6.5,rx:3,ry:2,fill:'#c89968',opacity}));
+      // seed crack at germination
+      if(growth>0.1&&growth<0.22){
+        content.appendChild(el('line',{x1:CX-3,y1:GY+6,x2:CX+3,y2:GY+10,stroke:'#3d2513','stroke-width':0.8,opacity}));
+      }
+    }
+
+    // Trunk + branches
+    for(const b of branches){
+      if(growth<b.g0)continue;
+      const t=clamp((growth-b.g0)/(b.g1-b.g0),0,1);
+      const x2=lerp(b.x1,b.x2,t);
+      const y2=lerp(b.y1,b.y2,t);
+      const widthFade=clamp((growth-b.g0+0.03)/0.08,0,1);
+      if(b.trunk){
+        const w0=b.w0*widthFade;
+        const w1=lerp(b.w0,b.w1,t)*widthFade;
+        drawTrunk(b.x1,b.y1,x2,y2,w0,w1);
+      }else{
+        const w=lerp(b.w0,b.w1,t)*widthFade;
+        drawBranch(b.x1,b.y1,x2,y2,w);
+      }
+    }
+
+    // Leaves (on top of branches)
+    for(const l of leafClusters){
+      if(growth<l.g0)continue;
+      const t=clamp((growth-l.g0)/(l.g1-l.g0),0,1);
+      drawLeafCluster(l.x,l.y,l.r*t,l.s);
+    }
+
+    // Flowers
+    for(const f of flowers){
+      if(growth<f.g0)continue;
+      const t=clamp((growth-f.g0)/0.05,0,1);
+      drawFlower(f.x,f.y,4.2*t);
+    }
+
+    // Stage label
+    let stage='Seed';
+    if(growth<0.1)stage='Seed';
+    else if(growth<0.25)stage='Germination';
+    else if(growth<0.42)stage='Seedling';
+    else if(growth<0.6)stage='Sapling';
+    else if(growth<0.76)stage='Young tree';
+    else if(growth<0.9)stage='Mature tree';
+    else stage='In bloom';
+    stageLabel.textContent=stage;
+  }
+
+  // Animation loop
+  let playing=false,rafId=null,startT=null,startG=0;
+  const DURATION=14000;
+
+  function tick(t){
+    if(!playing)return;
+    if(!startT)startT=t;
+    let g=startG+(t-startT)/DURATION;
+    if(g>=1){
+      g=1;playing=false;playBtn.textContent='Play again';
+    }
+    scrubber.value=Math.round(g*1000);
+    render(g);
+    if(playing)rafId=requestAnimationFrame(tick);
+  }
+
+  playBtn.addEventListener('click',()=>{
+    if(playing){
+      playing=false;playBtn.textContent='Play';
+      if(rafId)cancelAnimationFrame(rafId);
+      return;
+    }
+    let cur=parseInt(scrubber.value)/1000;
+    if(cur>=0.999){cur=0;scrubber.value=0}
+    startG=cur;startT=null;playing=true;
+    playBtn.textContent='Pause';
+    rafId=requestAnimationFrame(tick);
+  });
+
+  resetBtn.addEventListener('click',()=>{
+    playing=false;
+    if(rafId)cancelAnimationFrame(rafId);
+    scrubber.value=0;playBtn.textContent='Play';
+    render(0);
+  });
+
+  scrubber.addEventListener('input',()=>{
+    if(playing){
+      playing=false;playBtn.textContent='Play';
+      if(rafId)cancelAnimationFrame(rafId);
+    }
+    render(parseInt(scrubber.value)/1000);
+  });
+
+  render(0);
+  // Auto-start after a brief pause so the scene is visible first
+  setTimeout(()=>{
+    if(parseInt(scrubber.value)===0&&!playing){
+      startG=0;startT=null;playing=true;
+      playBtn.textContent='Pause';
+      rafId=requestAnimationFrame(tick);
+    }
+  },600);
+})();
+</script>
